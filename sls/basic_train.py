@@ -263,7 +263,7 @@ class Learner():
         if return_path: return target
 
     def dl(self, ds_type:DatasetType=DatasetType.Valid):
-        "Return DataLoader for DatasetType `ds_type`."
+        "Return custom_DataLoader for DatasetType `ds_type`."
         return self.data.dl(ds_type)
 
     def load(self, file:PathLikeOrBinaryStream=None, device:torch.device=None, strict:bool=True,
