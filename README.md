@@ -31,3 +31,5 @@ Does Adam stick close to the optimal point?  https://arxiv.org/abs/1911.00289v1
 
 
 Probabalistic line searches for stochastic optimization (2017, matlab only but good theory work):  https://arxiv.org/abs/1703.10034v2  
+
+Main repository: https://github.com/lessw2020/Best-Deep-Learning-Optimizers/tree/master/adamod
