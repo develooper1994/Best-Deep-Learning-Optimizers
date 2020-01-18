@@ -150,7 +150,7 @@ def _loss_func2activ(loss_func):
 
 @dataclass
 class Learner():
-    "Trainer for `model` using `data` to minimize `loss_func` with optimizer `opt_func`."
+    "BaseTrainer for `model` using `data` to minimize `loss_func` with optimizer `opt_func`."
     data:DataBunch
     model:nn.Module
     opt_func:Callable=AdamW
