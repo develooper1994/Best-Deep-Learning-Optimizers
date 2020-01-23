@@ -1,4 +1,6 @@
 "Provides basic training and validation with `Learner`"
+from typing import Union, Collection
+
 from .torch_core import *
 from .basic_data import *
 from .callback import *
@@ -198,12 +200,12 @@ class Learner():
         return np.array(res)
 
     def fit(self, epochs:int, lr:Union[Floats,slice]=defaults.lr,
-            wd:Floats=None, callbacks:Collection[Callback]=None)->None:
+            wd:Floats=None, callbacks:Collection[Callback]=None) -> None:
         "Fit the model on this learner with `lr` learning rate, `wd` weight decay for `epochs` with `callbacks`."
         lr = self.lr_range(lr)
         if wd is None: wd = self.wd
-        if not getattr(self, 'opt', False): self.create_opt(lr, wd)
-        else: self.opt.lr,self.opt.wd = lr,wd
+        if getattr(self, 'opt', False): self.opt.lr,self.opt.wd = lr,wd
+        else: self.create_opt(lr, wd)
         callbacks = [cb(self) for cb in self.callback_fns + listify(defaults.extra_callback_fns)] + listify(callbacks)
         fit(epochs, self, metrics=self.metrics, callbacks=self.callbacks+callbacks)
 
@@ -217,12 +219,12 @@ class Learner():
         self.layer_groups = split_model(self.model, split_on)
         return self
 
-    def freeze_to(self, n:int)->None:
+    def freeze_to(self, n:int) -> None:
         "Freeze layers up to layer group `n`."
         if hasattr(self.model, 'reset'): self.model.reset()
         for g in self.layer_groups[:n]:
             for l in g:
-                if not self.train_bn or not isinstance(l, bn_types): requires_grad(l, False)
+                if not (self.train_bn and isinstance(l, bn_types)): requires_grad(l, False)
         for g in self.layer_groups[n:]: requires_grad(g, True)
         self.create_opt(defaults.lr)
 
@@ -505,11 +507,9 @@ class Recorder(LearnerCallback):
         if len(last_metrics) > 1: self.metrics.append(last_metrics[1:])
         self.format_stats([epoch, smooth_loss] + last_metrics)
 
-    def format_stats(self, stats:TensorOrNumList)->None:
+    def format_stats(self, stats:TensorOrNumList) -> None:
         "Format stats before printing."
-        str_stats = []
-        for name,stat in zip(self.names,stats):
-            str_stats.append('#na#' if stat is None else str(stat) if isinstance(stat, int) else f'{stat:.6f}')
+        str_stats = ['#na#' if stat is None else str(stat) if isinstance(stat, int) else f'{stat:.6f}' for name,stat in zip(self.names,stats)]
         if self.add_time: str_stats.append(format_time(time() - self.start_epoch))
         if not self.silent: self.pbar.write(str_stats, table=True)
 

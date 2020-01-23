@@ -1,6 +1,7 @@
 
 import math
 import torch
+from torch import Tensor
 from torch.optim.optimizer import Optimizer
 import numpy as np
 import torch.nn as nn
@@ -61,6 +62,7 @@ class DiffGrad(Optimizer):
             closure (callable, optional): A closure that reevaluates the model
                 and returns the loss.
         """
+        global dfc, diff
         loss = None
         if closure is not None:
             loss = closure()
@@ -101,21 +103,18 @@ class DiffGrad(Optimizer):
                 bias_correction1 = 1 - beta1 ** state['step']
                 bias_correction2 = 1 - beta2 ** state['step']
 
-                # compute diffgrad coefficient (dfc)
-                
-                
-                if self.version==0:
+                den: Tensor = (1. + torch.exp(-diff))
+                if self.version == 0:
                     diff = abs(previous_grad - grad)
-                elif self.version ==1:
+                elif self.version == 1:
                     diff = previous_grad-grad
-                elif self.version ==2:
+                elif self.version == 2:
                     diff =  .5*abs(previous_grad - grad)
-                    
-                if self.version==0 or self.version==1:    
-                    dfc = 1. / (1. + torch.exp(-diff))
-                elif self.version==2:
-                    dfc = 9. / (1. + torch.exp(-diff))-4      #DFC2 = 9/(1+e-(.5/g/)-4 #range .5,5
-                    
+                if self.version in [0, 1]:
+                    dfc = 1. / den
+                elif self.version == 2:
+                    dfc = 9. / den - 4      #DFC2 = 9/(1+e-(.5/g/)-4 #range .5,5
+
                 state['previous_grad'] = grad
 
                 # update momentum with dfc
