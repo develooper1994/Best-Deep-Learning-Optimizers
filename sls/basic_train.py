@@ -342,7 +342,7 @@ class Learner():
 
     def get_preds(self, ds_type:DatasetType=DatasetType.Valid, activ:nn.Module=None,
                   with_loss:bool=False, n_batch:Optional[int]=None, pbar:Optional[PBar]=None) -> List[Tensor]:
-        "Return predictions and targets on `ds_type` dataset."
+        """Return predictions and targets on `ds_type` dataset."""
         lf = self.loss_func if with_loss else None
         activ = ifnone(activ, _loss_func2activ(self.loss_func))
         if not getattr(self, 'opt', False): self.create_opt(defaults.lr, self.wd)
@@ -352,7 +352,7 @@ class Learner():
 
     def pred_batch(self, ds_type:DatasetType=DatasetType.Valid, batch:Tuple=None, reconstruct:bool=False,
                    with_dropout:bool=False, activ:nn.Module=None) -> List[Tensor]:
-        "Return output of the model on one batch from `ds_type` dataset."
+        """Return output of the model on one batch from `ds_type` dataset."""
         if batch is not None: xb,yb = batch
         else: xb,yb = self.data.one_batch(ds_type, detach=False, denorm=False)
         cb_handler = CallbackHandler(self.callbacks)
@@ -378,7 +378,7 @@ class Learner():
         return loss
 
     def predict(self, item:ItemBase, return_x:bool=False, batch_first:bool=True, with_dropout:bool=False, **kwargs):
-        "Return predicted class, label and probabilities for `item`."
+        """Return predicted class, label and probabilities for `item`."""
         batch = self.data.one_item(item)
         res = self.pred_batch(batch=batch, with_dropout=with_dropout)
         raw_pred,x = grab_idx(res,0,batch_first=batch_first),batch[0]
@@ -393,7 +393,7 @@ class Learner():
         return (x, y, pred, raw_pred) if return_x else (y, pred, raw_pred)
 
     def validate(self, dl=None, callbacks=None, metrics=None):
-        "Validate on `dl` with potential `callbacks` and `metrics`."
+        """Validate on `dl` with potential `callbacks` and `metrics`."""
         dl = ifnone(dl, self.data.valid_dl)
         metrics = ifnone(metrics, self.metrics)
         cb_handler = CallbackHandler(self.callbacks + ifnone(callbacks, []), metrics)
@@ -403,7 +403,7 @@ class Learner():
         return cb_handler.state_dict['last_metrics']
 
     def show_results(self, ds_type=DatasetType.Valid, rows:int=5, **kwargs):
-        "Show `rows` result of predictions on `ds_type` dataset."
+        """Show `rows` result of predictions on `ds_type` dataset."""
         #TODO: get read of has_arg x and split_kwargs_by_func if possible
         #TODO: simplify this and refactor with pred_batch(...reconstruct=True)
         n_items = rows ** 2 if self.data.train_ds.x._square_show_res else rows
@@ -431,11 +431,11 @@ class Learner():
         ds.x.show_xyzs(xs, ys, zs, **kwargs)
 
     def apply_dropout(self, m):
-        "If a module contains 'dropout' in it's name, it will be switched to .train() mode."
+        """If a module contains 'dropout' in it's name, it will be switched to .train() mode."""
         if 'dropout' in m.__class__.__name__.lower(): m.train()
 
     def predict_with_mc_dropout(self, item:ItemBase, with_dropout:bool=True, n_times=10, **kwargs):
-        "Make predictions with dropout turned on for n_times (default 10)."
+        """Make predictions with dropout turned on for n_times (default 10)."""
         return [self.predict(item, with_dropout=with_dropout) for _ in range(n_times)]
 
 class RecordOnCPU(Callback):
